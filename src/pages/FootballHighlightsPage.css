@@ -1,0 +1,36 @@
+.highlights-header {
+  padding-top: 10px;
+  margin-bottom: 24px;
+}
+.highlights-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: -12px;
+}
+
+.highlights-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.highlight-grid--full {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 1200px) {
+  .highlight-grid--full {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 768px) {
+  .highlight-grid--full {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .highlight-grid--full {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,203 @@
+/* src/components/CustomPlayer.css */
+.cp-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  overflow: hidden;
+  border-radius: 8px; /* Standard player border radius */
+}
+
+.cp-fullscreen {
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
+.cp-react-player {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* UI Overlay Container */
+.cp-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: opacity 0.3s ease-in-out;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 20%, transparent 70%, rgba(0,0,0,0.8) 100%);
+  z-index: 10;
+}
+
+.cp-show {
+  opacity: 1;
+}
+
+.cp-hide {
+  opacity: 0;
+  pointer-events: none; /* Let clicks pass through if hidden */
+}
+
+/* Top Bar */
+.cp-top-bar {
+  padding: 20px;
+}
+.cp-title {
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+/* Center Big Button Area */
+.cp-center-controls {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.cp-big-btn {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: rgba(22, 103, 207, 0.8); /* Match accent color, e.g. blue/gold */
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 2rem;
+  transition: transform 0.2s, background 0.2s;
+}
+.cp-big-btn:hover {
+  transform: scale(1.1);
+  background: rgba(22, 103, 207, 1);
+}
+.cp-play-icon {
+  margin-left: 6px; /* visually center play icon */
+}
+
+/* Bottom Bar */
+.cp-bottom-bar {
+  padding: 0 20px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Custom Range Sliders */
+input[type="range"] {
+  -webkit-appearance: none;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  height: 6px;
+  outline: none;
+  cursor: pointer;
+  background-image: linear-gradient(#1667cf, #1667cf);
+  background-repeat: no-repeat;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 0 4px rgba(0,0,0,0.5);
+  transition: transform 0.1s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* Progress Container */
+.cp-progress-container {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  overflow: visible; /* to allow thumb to overflow */
+}
+.cp-progress-loaded {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  pointer-events: none;
+}
+.cp-progress-slider {
+  width: 100%;
+  position: relative;
+  z-index: 2;
+  margin: 0;
+}
+
+/* Controls Row */
+.cp-controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+.cp-controls-left, .cp-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Control Buttons */
+.cp-control-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, transform 0.1s;
+}
+.cp-control-btn:hover {
+  color: #1667cf;
+  transform: scale(1.1);
+}
+
+/* Volume */
+.cp-volume-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cp-volume-slider {
+  width: 80px;
+  height: 4px !important;
+}
+
+/* Time Display */
+.cp-time {
+  color: #eaeaea;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  margin-left: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cp-volume-slider { width: 50px; }
+  .cp-big-btn { width: 50px; height: 50px; font-size: 1.5rem; }
+  .cp-controls-left, .cp-controls-right { gap: 12px; }
+  .cp-time { font-size: 0.75rem; }
+}

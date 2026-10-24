@@ -1,0 +1,28 @@
+.seasonal-effects { position: fixed; z-index: 4; inset: 0; overflow: hidden; pointer-events: none; }
+.seasonal-gif { position: absolute; display: block; height: auto; object-fit: contain; user-select: none; -webkit-user-drag: none; }
+
+/* Animated LottieFiles exports stay at the edges and below the video player. */
+.halloween-pumpkin { width: clamp(100px, 14vw, 190px); animation: halloween-pumpkin-float 5s ease-in-out infinite; }
+.halloween-pumpkin--one { left: -1.5%; top: 20%; }
+.halloween-pumpkin--two { right: -2%; bottom: 18%; animation-delay: -2.5s; }
+.halloween-ghost { width: clamp(150px, 20vw, 250px); opacity: .88; animation: halloween-ghost-float 7s ease-in-out infinite; }
+.halloween-ghost--one { top: 30%; right: -4%; }
+.halloween-ghost--two { left: -4%; bottom: 22%; animation-delay: -3.5s; transform: scaleX(-1); }
+@keyframes halloween-pumpkin-float { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-12px) rotate(4deg); } }
+@keyframes halloween-ghost-float { 0%,100% { translate: 0 0; } 50% { translate: 0 -18px; } }
+
+.new-year-fireworks { width: clamp(160px, 24vw, 310px); opacity: .83; animation: fireworks-pop 4.5s ease-in-out infinite; }
+.new-year-fireworks--one { top: 4%; left: -5%; }
+.new-year-fireworks--two { top: 18%; right: -6%; animation-delay: -1.5s; }
+.new-year-fireworks--three { bottom: 2%; left: 1%; width: clamp(120px, 18vw, 230px); animation-delay: -3s; }
+@keyframes fireworks-pop { 0%,100% { opacity: .35; transform: scale(.88); } 50% { opacity: .92; transform: scale(1); } }
+
+@media (max-width: 600px) {
+  .halloween-pumpkin { width: 92px; }
+  .halloween-ghost { width: 135px; opacity: .72; }
+  .new-year-fireworks { width: 145px; }
+  .new-year-fireworks--three { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .seasonal-gif { animation-duration: 1ms !important; animation-iteration-count: 1 !important; }
+}

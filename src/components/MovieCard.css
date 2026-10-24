@@ -1,0 +1,164 @@
+/* Movie Card - matches rophim1.pro sw-item style */
+.movie-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  text-decoration: none;
+  transition: all var(--transition-normal);
+}
+.movie-card:hover {
+  color: var(--text-primary);
+}
+.movie-card:hover .movie-card__poster img {
+  opacity: 0.8;
+}
+
+.movie-card__poster {
+  position: relative;
+  width: 100%;
+  padding-bottom: 150%;
+  height: 0;
+  overflow: hidden;
+  background: var(--bg-3);
+  border-radius: 0.5rem;
+}
+.movie-card__poster img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity var(--transition-normal);
+}
+
+/* Landscape variant */
+.movie-card--landscape .movie-card__poster {
+  padding-bottom: 56.25%;
+  border-radius: 0.6rem;
+}
+
+/* Play overlay */
+.movie-card__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  z-index: 2;
+}
+.movie-card:hover .movie-card__overlay { opacity: 1; }
+.movie-card__play {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--primary-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: var(--accent-text);
+  box-shadow: 0 4px 12px rgba(255, 218, 125, 0.2);
+  transform: scale(0.8);
+  transition: transform var(--transition-normal);
+}
+.movie-card:hover .movie-card__play { transform: scale(1); }
+
+/* Landscape play icon */
+.movie-card--landscape .movie-card__play {
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+}
+
+/* Pin badges - top (portrait) */
+.movie-card__badges {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  display: flex;
+  align-items: flex-start;
+  padding: 6px;
+  gap: 4px;
+  z-index: 2;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, transparent 100%);
+}
+
+/* Episode badge - colored tag */
+.movie-card__ep-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.ep-badge--sub {
+  background: #1667cf;
+  color: #fff;
+}
+.ep-badge--dub {
+  background: #2ca35d;
+  color: #fff;
+}
+.ep-badge--default {
+  background: #5e6070;
+  color: #fff;
+}
+
+/* Landscape badge positioning */
+.movie-card--landscape .movie-card__ep-badge {
+  bottom: 8px;
+  right: 8px;
+}
+
+/* Info */
+.movie-card__info {
+  min-height: 42px;
+}
+.movie-card__title {
+  font-size: 0.95em;
+  font-weight: 500;
+  color: #fff;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+.movie-card__origin {
+  font-size: 0.85em;
+  color: var(--text-muted);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Landscape text alignment */
+.movie-card--landscape .movie-card__info {
+  min-height: 38px;
+}
+
+@media (max-width: 480px) {
+  .movie-card__info { min-height: 36px; }
+  .movie-card__title { font-size: 0.85em; }
+  .movie-card__origin { font-size: 0.75em; }
+  .badge { font-size: 10px; padding: 1px 5px; }
+  .movie-card__ep-badge { font-size: 10px; padding: 2px 6px; }
+}
