@@ -27,11 +27,13 @@ export default function AnnouncementBanner() {
   }, []);
 
   useEffect(() => {
-    if (!announcement || dismissed) return undefined;
+    // The announcement modal is only shown on the home page. Do not leave
+    // body scrolling disabled after navigating to routes such as /admin.
+    if (pathname !== '/' || !announcement || dismissed) return undefined;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = previousOverflow; };
-  }, [announcement, dismissed]);
+  }, [pathname, announcement, dismissed]);
 
   if (pathname !== '/' || !announcement || dismissed) return null;
   return (
