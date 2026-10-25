@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { label: 'Phim Bộ', path: '/danh-sach/phim-bo' },
   { label: 'Hoạt Hình', path: '/danh-sach/hoat-hinh' },
   { label: 'TV Shows', path: '/danh-sach/tv-shows' },
+  { label: 'Yêu thích', path: '/yeu-thich' },
   { label: 'Quốc gia', path: '/quoc-gia', isDropdown: 'country' },
 ];
 

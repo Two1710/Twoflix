@@ -5,7 +5,9 @@ import HeroCarousel from '../components/HeroCarousel';
 import MovieCarousel from '../components/MovieCarousel';
 import CategoryInterest from '../components/CategoryInterest';
 import MovieCard from '../components/MovieCard';
-import { FiChevronRight, FiTrendingUp, FiFilm, FiTv, FiStar } from 'react-icons/fi';
+import { useAuth } from '../contexts/AuthContext';
+import './HomePage.css';
+import { FiChevronRight, FiShuffle } from 'react-icons/fi';
 
 const SECTIONS = [
   {
@@ -42,10 +44,13 @@ const SECTIONS = [
 ];
 
 export default function HomePage() {
+  const { history, bookmarks } = useAuth();
   const [heroMovies, setHeroMovies] = useState([]);
   const [sections, setSections] = useState({});
   const [hotMovies, setHotMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [discoveryType, setDiscoveryType] = useState('all');
+  const [randomMovie, setRandomMovie] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -91,6 +96,15 @@ export default function HomePage() {
 
   const gridSection = SECTIONS.find(s => s.isGrid);
   const carouselSections = SECTIONS.filter(s => !s.isGrid);
+  const pickRandomMovie = () => {
+    const pool = (discoveryType === 'all'
+      ? Object.values(sections).flat()
+      : sections[discoveryType] || []).filter(movie => movie?.slug);
+    const unique = [...new Map(pool.map(movie => [movie.slug, movie])).values()];
+    if (!unique.length) return;
+    const options = unique.filter(movie => movie.slug !== randomMovie?.slug);
+    setRandomMovie((options.length ? options : unique)[Math.floor(Math.random() * (options.length || unique.length))]);
+  };
 
   return (
     <div>
@@ -102,6 +116,50 @@ export default function HomePage() {
 
           {/* Category Interest chips */}
           <CategoryInterest />
+
+          <section className="home-discovery">
+            <div className="home-discovery__intro">
+              <span className="home-discovery__spark">✦</span>
+              <div><p className="home-discovery__eyebrow">GỢI Ý DÀNH RIÊNG CHO BẠN</p><h2>Không biết xem gì tối nay?</h2><p>Để TwoFlix chọn ngẫu nhiên một bộ phim cho bạn.</p></div>
+            </div>
+            <div className="home-discovery__controls">
+              <label className="home-discovery__select-label" htmlFor="discovery-type">Khám phá</label>
+              <select id="discovery-type" value={discoveryType} onChange={event => { setDiscoveryType(event.target.value); setRandomMovie(null); }}>
+                <option value="all">Tất cả phim</option>
+                {SECTIONS.map(section => <option key={section.id} value={section.id}>{section.id === 'phim-moi' ? 'Phim mới cập nhật' : section.id === 'phim-bo' ? 'Phim bộ' : section.id === 'phim-le' ? 'Phim lẻ' : section.id === 'hoat-hinh' ? 'Hoạt hình' : 'TV Shows'}</option>)}
+              </select>
+              <button type="button" onClick={pickRandomMovie}><FiShuffle /> Chọn phim cho tôi</button>
+            </div>
+            {randomMovie && <div className="home-discovery__result"><MovieCard movie={randomMovie} /><div><span>PHIM ĐƯỢC CHỌN</span><h3>{randomMovie.name}</h3><p>{randomMovie.origin_name || 'Sẵn sàng để khám phá'}{randomMovie.year ? ` · ${randomMovie.year}` : ''}</p><Link to={`/phim/${randomMovie.slug}`} className="home-discovery__watch">Xem phim <FiChevronRight /></Link></div></div>}
+          </section>
+
+          {history.length > 0 && (
+            <div className="section personal-shelf">
+              <div className="section-header">
+                <h2 className="section-title"><span className="highlight-gold">Xem tiếp</span> hành trình của bạn</h2>
+              </div>
+              <div className="movie-grid personal-shelf__grid">
+                {history.slice(0, 8).map(movie => (
+                  <div className="personal-shelf__item" key={movie.slug}>
+                    <MovieCard movie={movie} />
+                    <span className="personal-shelf__episode">Đang xem: {movie.lastEpisode || 'Tập 1'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {bookmarks.length > 0 && (
+            <div className="section personal-shelf">
+              <div className="section-header">
+                <h2 className="section-title"><span className="highlight-pink">Tủ phim</span> yêu thích</h2>
+                <Link to="/yeu-thich" className="section-link">Quản lý tủ phim <FiChevronRight /></Link>
+              </div>
+              <div className="movie-grid personal-shelf__grid">
+                {bookmarks.slice(0, 8).map(movie => <MovieCard key={movie.slug} movie={movie} />)}
+              </div>
+            </div>
+          )}
 
           {hotMovies.length > 0 && <MovieCarousel className="movie-carousel--hot" eyebrow="TUYỂN CHỌN BIÊN TẬP" title="Phim Hot" movies={hotMovies} />}
 

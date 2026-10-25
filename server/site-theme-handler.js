@@ -1,7 +1,7 @@
 import { validSession } from './admin-auth-handler.js';
 
 const THEME_KEY = 'twoflix:site-theme';
-const ALLOWED_THEMES = new Set(['default', 'halloween', 'new-year']);
+const ALLOWED_THEMES = new Set(['default', 'tet', 'valentine', 'mid-autumn', 'halloween', 'christmas', 'new-year']);
 
 async function redisCommand(command) {
   const url = (process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || '').replace(/\/$/, '');

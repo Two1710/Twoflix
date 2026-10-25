@@ -11,6 +11,7 @@ import FootballPage from './pages/FootballPage';
 import FootballLeaguePage from './pages/FootballLeaguePage';
 import FootballHighlightsPage from './pages/FootballHighlightsPage';
 import AdminPage from './pages/AdminPage';
+import FavoritesPage from './pages/FavoritesPage';
 import AnnouncementBanner from './components/AnnouncementBanner';
 import SiteTheme from './components/SiteTheme';
 import SeasonalEffects from './components/SeasonalEffects';
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="/quoc-gia/:slug" element={<MovieListPage />} />
         <Route path="/phim/:slug" element={<MovieDetailPage />} />
         <Route path="/tim-kiem" element={<SearchPage />} />
+        <Route path="/yeu-thich" element={<FavoritesPage />} />
         <Route path="/bong-da" element={<FootballPage />} />
         <Route path="/bong-da/giai-dau/:leagueId" element={<FootballLeaguePage />} />
         <Route path="/bong-da/highlights" element={<FootballHighlightsPage />} />

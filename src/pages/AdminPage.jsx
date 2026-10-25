@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FiArrowDown, FiArrowUp, FiBell, FiLock, FiLogOut, FiPlus, FiSearch, FiSend, FiTrash2 } from 'react-icons/fi';
+import { FiArrowDown, FiArrowUp, FiBell, FiLock, FiLogOut, FiPlus, FiSearch, FiSend, FiTrash2, FiCheck, FiEye } from 'react-icons/fi';
 import { searchOphim } from '../services/ophim';
 import './AdminPage.css';
+
+const EVENT_THEMES = [
+  { id: 'default', name: 'Bình thường', detail: 'Giao diện TwoFlix', mark: 'TWOFLIX' },
+  { id: 'tet', name: 'Tết', detail: 'Hoa đào, ánh xuân', mark: 'SPRING / 01' },
+  { id: 'valentine', name: 'Valentine', detail: 'Ánh hồng, cánh hoa', mark: 'LOVE / 14' },
+  { id: 'mid-autumn', name: 'Trung thu', detail: 'Ánh trăng, đèn hội', mark: 'MOON / 08' },
+  { id: 'halloween', name: 'Halloween', detail: 'Bóng tối, ánh cam', mark: 'NIGHT / 31' },
+  { id: 'christmas', name: 'Giáng sinh', detail: 'Tuyết rơi, ánh thông', mark: 'WINTER / 25' },
+  { id: 'new-year', name: 'Năm mới', detail: 'Ánh sáng giao thừa', mark: '00 : 00' },
+];
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -18,6 +28,9 @@ export default function AdminPage() {
   const [hotDirty, setHotDirty] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [theme, setTheme] = useState('default');
+  const [themeSaving, setThemeSaving] = useState(false);
+  const [showNoticePreview, setShowNoticePreview] = useState(false);
 
   const loadAnnouncement = useCallback(async () => {
     const response = await fetch('/api/announcement', { credentials: 'same-origin' });
@@ -35,16 +48,23 @@ export default function AdminPage() {
     setHotDirty(false);
   }, []);
 
+  const loadTheme = useCallback(async () => {
+    const response = await fetch('/api/site-theme', { credentials: 'same-origin', cache: 'no-store' });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Không thể tải giao diện.');
+    setTheme(data.theme || 'default');
+  }, []);
+
   useEffect(() => {
     fetch('/api/admin-auth', { credentials: 'same-origin' })
       .then(response => response.json())
       .then(async auth => {
         setAuthenticated(auth.authenticated === true);
-        if (auth.authenticated) await Promise.all([loadAnnouncement(), loadHotMovies()]);
+        if (auth.authenticated) await Promise.all([loadAnnouncement(), loadHotMovies(), loadTheme()]);
       })
       .catch(cause => setError(cause.message || 'Không thể kết nối máy chủ quản trị.'))
       .finally(() => setChecking(false));
-  }, [loadAnnouncement, loadHotMovies]);
+  }, [loadAnnouncement, loadHotMovies, loadTheme]);
 
   async function handleLogin(event) {
     event.preventDefault();
@@ -61,7 +81,7 @@ export default function AdminPage() {
       if (!response.ok) throw new Error(data.error || 'Đăng nhập thất bại.');
       setAuthenticated(true);
       setPassword('');
-      await Promise.all([loadAnnouncement(), loadHotMovies()]);
+      await Promise.all([loadAnnouncement(), loadHotMovies(), loadTheme()]);
     } catch (cause) {
       setError(cause.message || 'Không thể kết nối máy chủ quản trị.');
     } finally {
@@ -92,6 +112,26 @@ export default function AdminPage() {
       setError(cause.message || 'Không thể đăng thông báo.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function saveTheme() {
+    setError('');
+    setThemeSaving(true);
+    try {
+      const response = await fetch('/api/site-theme', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ theme }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Không thể cập nhật giao diện.');
+      setTheme(data.theme);
+      document.documentElement.dataset.theme = data.theme;
+    } catch (cause) {
+      setError(cause.message || 'Không thể cập nhật giao diện.');
+    } finally {
+      setThemeSaving(false);
     }
   }
 
@@ -175,6 +215,15 @@ export default function AdminPage() {
     }
   }
 
+  async function discardHotChanges() {
+    setError('');
+    try {
+      await loadHotMovies();
+    } catch (cause) {
+      setError(cause.message || 'Không thể tải lại danh sách phim hot.');
+    }
+  }
+
   if (checking) return <main className="admin-page"><div className="admin-panel">Đang tải trang quản trị…</div></main>;
 
   if (!authenticated) return (
@@ -199,12 +248,26 @@ export default function AdminPage() {
           <div><p className="admin-eyebrow">TWOFIX CONTROL</p><h1>Thông báo website</h1><p className="admin-description">Thông báo đã đăng sẽ hiển thị cho khách truy cập.</p></div>
           <button className="admin-logout" onClick={handleLogout}><FiLogOut /> Đăng xuất</button>
         </div>
+        <section className="admin-theme-section">
+          <div><h2>Chủ đề sự kiện</h2><p>Chọn hiệu ứng chuyển động và màu sắc sẽ hiển thị trên toàn website.</p></div>
+          <div className="admin-theme-controls">
+            {EVENT_THEMES.map(event => <button type="button" key={event.id} className={`admin-theme-card ${theme === event.id ? 'admin-theme-card--active' : ''}`} aria-pressed={theme === event.id} onClick={() => setTheme(event.id)}>
+              <span className={`admin-theme-card__art admin-theme-card__art--${event.id}`}><strong>{event.mark}</strong><i /><i /></span>
+              <span className="admin-theme-card__name">{event.name}</span>
+              <span className="admin-theme-card__detail">{event.detail}</span>
+            </button>)}
+          </div>
+          <div className="admin-theme-footer"><span>Đang chọn: <strong>{EVENT_THEMES.find(event => event.id === theme)?.name || 'Bình thường'}</strong></span><button className="admin-submit admin-submit--inline" onClick={saveTheme} disabled={themeSaving}><FiCheck /> {themeSaving ? 'Đang lưu…' : 'Áp dụng toàn website'}</button></div>
+        </section>
         <section className="admin-hot-movies">
           <div className="admin-hot-heading">
             <div><h2>Phim hot trên trang chủ</h2><p>Chọn tối đa 12 phim và sắp xếp thứ tự hiển thị.</p></div>
-            <button className="admin-submit admin-submit--inline" onClick={saveHotMovies} disabled={!hotDirty || hotSaving}>
-              <FiSend /> {hotSaving ? 'Đang lưu…' : 'Lưu phim hot'}
-            </button>
+            <div className="admin-hot-save-actions">
+              {hotDirty && <button className="admin-delete" onClick={discardHotChanges} disabled={hotSaving}>Hủy thay đổi</button>}
+              <button className="admin-submit admin-submit--inline" onClick={saveHotMovies} disabled={!hotDirty || hotSaving}>
+                <FiSend /> {hotSaving ? 'Đang lưu…' : 'Lưu phim hot'}
+              </button>
+            </div>
           </div>
           <form className="admin-hot-search" onSubmit={handleHotSearch}>
             <FiSearch />
@@ -242,7 +305,9 @@ export default function AdminPage() {
         {announcement && <div className="admin-current-notice"><FiBell /><span><strong>Thông báo đang hiển thị</strong>{announcement.message}</span></div>}
         <form className="admin-notice-form" onSubmit={saveAnnouncement}>
           <label htmlFor="announcement-message">Nội dung thông báo</label>
+          <div className="admin-notice-tools"><span>{announcement ? 'Đang chỉnh sửa thông báo đang hiển thị' : 'Bản nháp chưa được đăng'}</span><button type="button" onClick={() => setShowNoticePreview(value => !value)}><FiEye /> {showNoticePreview ? 'Ẩn xem trước' : 'Xem trước'}</button></div>
           <textarea id="announcement-message" maxLength={500} rows={5} value={message} onChange={event => setMessage(event.target.value)} placeholder="Nhập nội dung muốn thông báo cho mọi người…" required />
+          {showNoticePreview && <div className="admin-notice-preview"><FiBell /><p>{message.trim() || 'Nội dung thông báo sẽ hiển thị ở đây.'}</p></div>}
           <div className="admin-form-footer"><small>{message.length}/500 ký tự</small><div>
             {announcement && <button type="button" className="admin-delete" onClick={clearAnnouncement} disabled={saving}><FiTrash2 /> Gỡ thông báo</button>}
             <button className="admin-submit admin-submit--inline" disabled={saving || !message.trim()}><FiSend /> {saving ? 'Đang lưu…' : 'Đăng thông báo'}</button>

@@ -5,6 +5,7 @@
  */
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Hls from 'hls.js';
+import { enterFullscreen, exitFullscreen, syncFullscreenOrientation } from '../utils/screenOrientation';
 import {
   FiPlay, FiPause, FiVolume2, FiVolumeX, FiVolume1,
   FiMaximize, FiMinimize, FiLoader, FiSettings,
@@ -191,9 +192,18 @@ export default function HlsPlayer({ src, embedSrc, title, poster }) {
 
   // Fullscreen
   useEffect(() => {
-    const fn = () => setFullscreen(!!document.fullscreenElement);
+    const fn = () => {
+      const active = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      setFullscreen(active);
+      syncFullscreenOrientation(active);
+    };
     document.addEventListener('fullscreenchange', fn);
-    return () => document.removeEventListener('fullscreenchange', fn);
+    document.addEventListener('webkitfullscreenchange', fn);
+    return () => {
+      document.removeEventListener('fullscreenchange', fn);
+      document.removeEventListener('webkitfullscreenchange', fn);
+      syncFullscreenOrientation(false);
+    };
   }, []);
 
   // Keyboard shortcuts
@@ -262,8 +272,8 @@ export default function HlsPlayer({ src, embedSrc, title, poster }) {
 
   const toggleFS = (e) => {
     e?.stopPropagation();
-    if (!document.fullscreenElement) containerRef.current?.requestFullscreen().catch(()=>{});
-    else document.exitFullscreen();
+    if (!(document.fullscreenElement || document.webkitFullscreenElement)) enterFullscreen(containerRef.current);
+    else exitFullscreen();
   };
 
   const fmt = (s) => {

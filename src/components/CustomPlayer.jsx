@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactPlayer from 'react-player';
+import { enterFullscreen, exitFullscreen, syncFullscreenOrientation } from '../utils/screenOrientation';
 import { FiPlay, FiPause, FiVolume2, FiVolumeX, FiMaximize, FiMinimize, FiSettings } from 'react-icons/fi';
 import './CustomPlayer.css';
 
@@ -70,32 +71,24 @@ const CustomPlayer = ({ url, title }) => {
   const handleDuration = (dur) => setDuration(dur);
 
   const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      if (wrapperRef.current.requestFullscreen) {
-        wrapperRef.current.requestFullscreen();
-      } else if (wrapperRef.current.webkitRequestFullscreen) { /* Safari */
-        wrapperRef.current.webkitRequestFullscreen();
-      } else if (wrapperRef.current.msRequestFullscreen) { /* IE11 */
-        wrapperRef.current.msRequestFullscreen();
-      }
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) { /* Safari */
-        document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) { /* IE11 */
-        document.msExitFullscreen();
-      }
-    }
+    if (!(document.fullscreenElement || document.webkitFullscreenElement)) enterFullscreen(wrapperRef.current);
+    else exitFullscreen();
   };
 
   // Sync fullscreen state
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const active = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      setIsFullscreen(active);
+      syncFullscreenOrientation(active);
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      syncFullscreenOrientation(false);
+    };
   }, []);
 
   // Format time (seconds -> mm:ss or hh:mm:ss)
