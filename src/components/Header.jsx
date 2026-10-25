@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiSearch, FiMenu, FiX, FiChevronDown } from 'react-icons/fi';
+import { FiSearch, FiMenu, FiX, FiChevronDown, FiDownload } from 'react-icons/fi';
 import { fetchOphimGenres, fetchOphimCountries } from '../services/ophim';
 import './Header.css';
 
@@ -151,8 +151,16 @@ export default function Header() {
                 </li>
               );
             })}
+            <li className="nav-item nav-item--tv-download">
+              <Link to="/tai-app" onClick={() => setMobileOpen(false)}>Tải ứng dụng</Link>
+            </li>
           </ul>
         </nav>
+
+        <Link className="header-download" to="/tai-app" onClick={() => setMobileOpen(false)}>
+          <FiDownload aria-hidden="true" />
+          <span>Tải app</span>
+        </Link>
 
         {/* Mobile search toggle */}
         <button className="mobile-search-toggle" onClick={() => setMobileOpen(true)}>

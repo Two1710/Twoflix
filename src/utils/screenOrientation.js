@@ -1,14 +1,42 @@
+let landscapeLockPromise = null;
+let landscapeLocked = false;
+let orientationRequestId = 0;
+
 export async function lockLandscape() {
+  if (landscapeLocked) return true;
+  if (landscapeLockPromise) return landscapeLockPromise;
+
   const orientation = window.screen?.orientation;
-  try {
-    if (orientation?.lock) await orientation.lock('landscape');
-    else window.screen?.lockOrientation?.('landscape');
-  } catch {
-    // Some browsers only allow an orientation lock in fullscreen mode.
-  }
+  const requestId = ++orientationRequestId;
+  const pending = Promise.resolve().then(async () => {
+    try {
+      if (orientation?.lock) {
+        await orientation.lock('landscape');
+        if (requestId === orientationRequestId) landscapeLocked = true;
+        return requestId === orientationRequestId;
+      }
+      const legacyLock = window.screen?.lockOrientation;
+      if (legacyLock) {
+        const locked = legacyLock.call(window.screen, 'landscape') !== false;
+        if (requestId === orientationRequestId) landscapeLocked = locked;
+        return locked;
+      }
+    } catch {
+      // The fullscreen change handler retries after the browser enters fullscreen.
+    } finally {
+      if (landscapeLockPromise === pending) landscapeLockPromise = null;
+    }
+    return false;
+  });
+  landscapeLockPromise = pending;
+
+  return landscapeLockPromise;
 }
 
 export function unlockOrientation() {
+  landscapeLocked = false;
+  orientationRequestId += 1;
+  landscapeLockPromise = null;
   try {
     if (window.screen?.orientation?.unlock) window.screen.orientation.unlock();
     else window.screen?.unlockOrientation?.();

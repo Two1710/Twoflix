@@ -171,6 +171,12 @@ a:hover { color: var(--primary-text); }
 img { display: block; max-width: 100%; }
 button { cursor: pointer; border: none; outline: none; font-family: inherit; font-size: inherit; }
 ul, ol { list-style: none; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--primary-text);
+  outline-offset: 3px;
+}
+.movie-card:focus-visible { transform: translateY(-4px); border-radius: 0.6rem; }
+.movie-card:focus-visible .movie-card__poster { box-shadow: 0 0 0 2px var(--primary-text), 0 8px 28px color-mix(in srgb, var(--primary-color) 35%, transparent); }
 
 /* Container */
 .container {

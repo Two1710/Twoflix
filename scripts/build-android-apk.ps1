@@ -23,7 +23,7 @@ try {
 
   Push-Location (Join-Path $projectRoot 'android')
   try {
-    & .\gradlew.bat assembleDebug
+    & .\gradlew.bat assembleMobileDebug assembleTvDebug
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
   } finally {
     Pop-Location
@@ -32,4 +32,5 @@ try {
   Pop-Location
 }
 
-Write-Output "APK: $projectRoot\android\app\build\outputs\apk\debug\app-debug.apk"
+Write-Output "Mobile APK: $projectRoot\android\app\build\outputs\apk\mobile\debug\app-mobile-debug.apk"
+Write-Output "Android TV APK: $projectRoot\android\app\build\outputs\apk\tv\debug\app-tv-debug.apk"

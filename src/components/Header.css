@@ -28,6 +28,26 @@ header, .header {
 }
 .logo-img { height: 42px; width: auto; max-width: 160px; object-fit: contain; }
 
+.header-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  padding: 9px 13px;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 8px;
+  background: var(--primary-color, #e50914);
+  color: #fff;
+  font-size: 0.84rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition: filter 0.18s, transform 0.18s;
+}
+.header-download:hover { filter: brightness(1.12); transform: translateY(-1px); }
+.header-download svg { font-size: 1rem; }
+.nav-item--tv-download { display: none; }
+
 /* Search */
 .header__search {
   flex: 1 1 300px;
@@ -136,6 +156,7 @@ header, .header {
   .header__inner { padding: 0 16px; gap: 10px; }
   .nav-item a, .nav-dropdown-trigger { padding: 0 8px; font-size: 0.82rem; }
   .header__search { max-width: 280px; }
+  .header-download { padding: 8px 10px; }
 }
 
 /* Tablet - hide some nav items, keep essential */
@@ -170,6 +191,7 @@ header, .header {
   /* Show all items on mobile */
   .nav-item:nth-child(5),
   .nav-item:nth-child(6) { display: flex; }
+  .nav-item--tv-download { display: flex; }
   .nav-item a, .nav-dropdown-trigger {
     padding: 12px 20px; line-height: 1.5;
     font-size: 0.95rem; border-radius: 0;

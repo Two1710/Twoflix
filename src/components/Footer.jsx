@@ -15,6 +15,16 @@ export default function Footer() {
           </p>
         </div>
         <div className="footer__links">
+          <div className="footer__col footer__apps">
+            <h4>Ứng dụng TwoFlix</h4>
+            <a href="/downloads/twoflix-android.apk" download>
+              Tải app Android
+            </a>
+            <a href="/downloads/twoflix-android-tv.apk" download>
+              Tải app Android TV
+            </a>
+            <span className="footer__app-note">APK dành cho thiết bị Android</span>
+          </div>
           <div className="footer__col">
             <h4>Danh Mục</h4>
             <Link to="/danh-sach/phim-bo">Phim Bộ</Link>

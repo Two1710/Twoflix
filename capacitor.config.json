@@ -1,9 +1,5 @@
 {
   "appId": "com.twoflix.app",
   "appName": "TwoFlix",
-  "webDir": "dist",
-  "server": {
-    "url": "https://twoflix.qzz.io/",
-    "cleartext": false
-  }
+  "webDir": "dist"
 }
