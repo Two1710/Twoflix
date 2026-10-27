@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FiArrowLeft, FiCheck, FiDownload, FiMonitor, FiSmartphone, FiWifi } from 'react-icons/fi';
+import { FiArrowLeft, FiCheck, FiDownload, FiMonitor, FiPlusSquare, FiShare2, FiSmartphone, FiWifi } from 'react-icons/fi';
 import './DownloadPage.css';
 
 const APPS = [
@@ -53,6 +53,23 @@ export default function DownloadPage() {
               </a>
             </article>
           ))}
+        </section>
+
+        <section className="ios-install" aria-labelledby="ios-install-title">
+          <div className="ios-install__intro">
+            <span className="ios-install__icon"><FiSmartphone /></span>
+            <div>
+              <span className="ios-install__eyebrow">IPHONE &amp; IPAD · SAFARI</span>
+              <h2 id="ios-install-title">Thêm TwoFlix vào Màn hình chính</h2>
+              <p>Không cần tải APK. Mở website bằng Safari rồi thêm lối tắt để dùng TwoFlix như một ứng dụng.</p>
+            </div>
+          </div>
+          <ol className="ios-install__steps">
+            <li><span>1</span><div><strong>Mở TwoFlix trong Safari</strong><small>Trên iPhone hoặc iPad, dùng trình duyệt Safari.</small></div></li>
+            <li><span><FiShare2 /></span><div><strong>Nhấn nút Chia sẻ</strong><small>Biểu tượng hình vuông có mũi tên hướng lên.</small></div></li>
+            <li><span><FiPlusSquare /></span><div><strong>Chọn “Thêm vào Màn hình chính”</strong><small>Nhấn “Thêm” để hoàn tất cài đặt.</small></div></li>
+          </ol>
+          <p className="ios-install__note">Nếu đang dùng trình duyệt khác, hãy mở trang này bằng Safari trước.</p>
         </section>
 
         <p className="download-note"><FiWifi /> Cần kết nối Internet để xem phim và tải nội dung từ dịch vụ trực tuyến.</p>

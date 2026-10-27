@@ -1,0 +1,24 @@
+{
+  "name": "TwoFlix",
+  "short_name": "TwoFlix",
+  "description": "Xem phim trên TwoFlix",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#110f19",
+  "theme_color": "#110f19",
+  "icons": [
+    {
+      "src": "/twoflix-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/twoflix-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

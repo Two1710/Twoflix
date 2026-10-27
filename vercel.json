@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/((?!assets|favicon|api).*)",
+      "source": "/((?!assets|favicon|api|manifest\\.webmanifest|apple-touch-icon|twoflix-|ads\\.txt).*)",
       "destination": "/index.html"
     }
   ]
