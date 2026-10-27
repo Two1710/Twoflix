@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FiArrowDown, FiArrowUp, FiBell, FiLock, FiLogOut, FiPlus, FiSearch, FiSend, FiTrash2, FiCheck, FiEye, FiUsers } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
+import { FiArrowDown, FiArrowUp, FiBell, FiLock, FiLogOut, FiPlus, FiSearch, FiSend, FiTrash2, FiCheck, FiEye } from 'react-icons/fi';
 import { searchOphim } from '../services/ophim';
 import { parseJsonResponse } from '../utils/parseJsonResponse';
 import './AdminPage.css';
@@ -260,14 +259,6 @@ export default function AdminPage() {
             </button>)}
           </div>
           <div className="admin-theme-footer"><span>Đang chọn: <strong>{EVENT_THEMES.find(event => event.id === theme)?.name || 'Bình thường'}</strong></span><button className="admin-submit admin-submit--inline" onClick={saveTheme} disabled={themeSaving}><FiCheck /> {themeSaving ? 'Đang lưu…' : 'Áp dụng toàn website'}</button></div>
-        </section>
-        <section className="admin-room-section">
-          <div className="admin-room-icon"><FiUsers /></div>
-          <div className="admin-room-copy">
-            <h2>Phòng xem chung</h2>
-            <p>Chọn phim và tập có nguồn HLS trên website, sau đó nhấn “Tạo phòng xem chung”. Chia sẻ link để mọi người vào cùng phòng.</p>
-          </div>
-          <Link to="/" className="admin-room-link">Chọn phim</Link>
         </section>
         <section className="admin-hot-movies">
           <div className="admin-hot-heading">

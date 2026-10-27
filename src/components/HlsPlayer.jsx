@@ -15,7 +15,7 @@ import './HlsPlayer.css';
 
 const HLS_TIMEOUT = 8000;
 
-export default function HlsPlayer({ src, embedSrc, title, poster, roomState, onRoomStateChange, onPlayerModeChange }) {
+export default function HlsPlayer({ src, embedSrc, title, poster }) {
   const videoRef    = useRef(null);
   const containerRef= useRef(null);
   const hlsRef      = useRef(null);
@@ -25,16 +25,6 @@ export default function HlsPlayer({ src, embedSrc, title, poster, roomState, onR
   const stallTimer  = useRef(null);
   const playbackStartedRef = useRef(false);
   const recoverRef = useRef({ network: 0, media: 0 });
-  const roomControlled = Boolean(roomState);
-  const roomStateRef = useRef(roomState);
-  const roomStateCallbackRef = useRef(onRoomStateChange);
-  const playerModeCallbackRef = useRef(onPlayerModeChange);
-  const roomRemoteUntilRef = useRef(0);
-  const roomLastPublishRef = useRef(0);
-  roomStateRef.current = roomState;
-  roomStateCallbackRef.current = onRoomStateChange;
-  playerModeCallbackRef.current = onPlayerModeChange;
-
   const [mode, setMode]                 = useState('loading'); // 'hls'|'iframe'|'loading'
   const [playing, setPlaying]           = useState(false);
   const [muted, setMuted]               = useState(true);
@@ -77,7 +67,7 @@ export default function HlsPlayer({ src, embedSrc, title, poster, roomState, onR
     if (!hasSrc && !hasEmbed) { setMode('iframe'); setLoading(false); return; }
     if (hasSrc) initHls(src, hasEmbed ? embedSrc : null);
     else { setMode('iframe'); setLoading(false); }
-  }, [src, embedSrc, roomControlled]);
+  }, [src, embedSrc]);
 
   function initHls(hlsSrc, fallback) {
     const video = videoRef.current;
@@ -100,7 +90,7 @@ export default function HlsPlayer({ src, embedSrc, title, poster, roomState, onR
     // Safari
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = hlsSrc; video.muted = true; video.load();
-      if (!roomControlled) video.play().catch(() => {});
+      video.play().catch(() => {});
       setMode('hls'); setLoading(false);
       return;
     }
@@ -133,19 +123,15 @@ export default function HlsPlayer({ src, embedSrc, title, poster, roomState, onR
       });
       if (lvls.length > 1) setQualities(lvls);
       video.muted = true;
-      if (!roomControlled) {
-        video.play()
-          .then(() => setPlaying(true))
-          .catch(() => setPlaying(false));
-      }
+      video.play()
+        .then(() => setPlaying(true))
+        .catch(() => setPlaying(false));
 
       // Some desktop streams can parse manifest but never start playback.
       clearTimeout(stallTimer.current);
-      if (!roomControlled) {
-        stallTimer.current = setTimeout(() => {
-          if (!playbackStartedRef.current) fallbackToIframe();
-        }, 6000);
-      }
+      stallTimer.current = setTimeout(() => {
+        if (!playbackStartedRef.current) fallbackToIframe();
+      }, 6000);
     });
 
     hls.on(Hls.Events.LEVEL_SWITCHED, (_e, data) => setActiveQuality(data.level));
@@ -176,15 +162,8 @@ export default function HlsPlayer({ src, embedSrc, title, poster, roomState, onR
   useEffect(() => {
     if (mode !== 'hls') return;
     const v = videoRef.current; if (!v) return;
-    const publish = (force = false) => {
-      if (!roomControlled || Date.now() < roomRemoteUntilRef.current) return;
-      const now = Date.now();
-      if (!force && now - roomLastPublishRef.current < 2200) return;
-      roomLastPublishRef.current = now;
-      roomStateCallbackRef.current?.({ playing: !v.paused, currentTime: v.currentTime || 0 });
-    };
     const H = {
-      timeupdate:     () => { setCurTime(v.currentTime); publish(); },
+      timeupdate:     () => setCurTime(v.currentTime),
       durationchange: () => { if (isFinite(v.duration)) setDuration(v.duration); },
       waiting:        () => setLoading(true),
       canplay:        () => setLoading(false),
@@ -193,10 +172,8 @@ export default function HlsPlayer({ src, embedSrc, title, poster, roomState, onR
         clearTimeout(stallTimer.current);
         setLoading(false);
         setPlaying(true);
-        publish(true);
       },
-      pause:          () => { setPlaying(false); publish(true); },
-      seeked:         () => publish(true),
+      pause:          () => setPlaying(false),
       error:           () => {
         if (embedSrc) { setMode('iframe'); setLoading(false); }
         else {
@@ -210,24 +187,7 @@ export default function HlsPlayer({ src, embedSrc, title, poster, roomState, onR
     };
     Object.entries(H).forEach(([e,fn]) => v.addEventListener(e,fn));
     return () => Object.entries(H).forEach(([e,fn]) => v.removeEventListener(e,fn));
-  }, [mode, roomControlled, embedSrc]);
-
-  useEffect(() => {
-    const state = roomStateRef.current;
-    const v = videoRef.current;
-    if (!roomControlled || mode !== 'hls' || !state || !v) return;
-
-    const elapsed = state.playing ? Math.max(0, Date.now() - state.updatedAt) / 1000 : 0;
-    const target = Math.max(0, state.currentTime + elapsed);
-    roomRemoteUntilRef.current = Date.now() + 1400;
-    if (Number.isFinite(v.duration) && Math.abs(v.currentTime - target) > 1.5) v.currentTime = target;
-    if (state.playing && v.paused) v.play().catch(() => {});
-    else if (!state.playing && !v.paused) v.pause();
-  }, [mode, roomControlled, roomState?.updatedAt, duration]);
-
-  useEffect(() => {
-    playerModeCallbackRef.current?.(mode);
-  }, [mode]);
+  }, [mode, embedSrc]);
 
   useEffect(() => () => {
     clearTimeout(stallTimer.current);

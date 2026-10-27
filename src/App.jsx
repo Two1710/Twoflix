@@ -13,7 +13,6 @@ import FootballHighlightsPage from './pages/FootballHighlightsPage';
 import AdminPage from './pages/AdminPage';
 import FavoritesPage from './pages/FavoritesPage';
 import DownloadPage from './pages/DownloadPage';
-import WatchRoomPage from './pages/WatchRoomPage';
 import AnnouncementBanner from './components/AnnouncementBanner';
 import SiteTheme from './components/SiteTheme';
 import SeasonalEffects from './components/SeasonalEffects';
@@ -57,7 +56,6 @@ export default function App() {
         <Route path="/tim-kiem" element={<SearchPage />} />
         <Route path="/yeu-thich" element={<FavoritesPage />} />
         <Route path="/tai-app" element={<DownloadPage />} />
-        <Route path="/xem-chung/:code" element={<WatchRoomPage />} />
         <Route path="/bong-da" element={<FootballPage />} />
         <Route path="/bong-da/giai-dau/:leagueId" element={<FootballLeaguePage />} />
         <Route path="/bong-da/highlights" element={<FootballHighlightsPage />} />

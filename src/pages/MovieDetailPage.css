@@ -137,10 +137,6 @@
 .md-action-item svg {
   font-size: 1.15rem;
 }
-.md-watch-room-create { color: var(--primary-text); border: 1px solid color-mix(in srgb, var(--primary-color) 35%, transparent); background: color-mix(in srgb, var(--primary-color) 9%, transparent); }
-.md-watch-room-create:hover { background: color-mix(in srgb, var(--primary-color) 17%, transparent); }
-.md-watch-room-create:disabled { opacity: .65; cursor: wait; }
-.md-watch-room-error { flex-basis: 100%; color: #ff8b91; font-size: .8rem; }
 
 /* Toggle */
 .md-toggle {
