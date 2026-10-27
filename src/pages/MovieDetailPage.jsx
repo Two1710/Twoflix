@@ -9,12 +9,20 @@ import { parseJsonResponse } from '../utils/parseJsonResponse';
 import {
   FiPlay, FiHeart, FiStar, FiChevronLeft, FiList,
   FiFlag, FiUser, FiVideo, FiX, FiShare2, FiDownload,
-  FiChevronDown, FiChevronUp, FiExternalLink
+  FiChevronDown, FiChevronUp, FiExternalLink, FiCheck
 } from 'react-icons/fi';
 import './MovieDetailPage.css';
 
 const TMDB_KEY = '051675f9cf39c424859f3e0aa5fcfd85';
 const TMDB_BASE = 'https://api.themoviedb.org/3';
+
+function getVersionLabel(serverName, index) {
+  const name = String(serverName || '').toLowerCase();
+  if (name.includes('vietsub') || name.includes('phụ đề')) return 'Vietsub';
+  if (name.includes('lồng tiếng')) return 'Lồng tiếng';
+  if (name.includes('thuyết minh')) return 'Thuyết minh';
+  return serverName || `Bản ${index + 1}`;
+}
 
 export default function MovieDetailPage() {
   const { slug } = useParams();
@@ -109,6 +117,12 @@ export default function MovieDetailPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleSelectServer = (index) => {
+    const server = episodes[index];
+    setActiveServer(index);
+    if (server?.server_data?.length) handlePlayEp(server.server_data[0]);
+  };
+
   if (loading) {
     return (
       <div className="page-content">
@@ -132,9 +146,21 @@ export default function MovieDetailPage() {
     ? `https://image.tmdb.org/t/p/w1280${tmdb.backdrop_path}`
     : movie.thumb_url;
 
+  const posterFallbacks = [...new Set([
+    movie.poster_url,
+    movie.thumb_url,
+  ].filter(url => url && !url.includes('placehold.co')))];
+  posterFallbacks.push('https://placehold.co/300x450/0f0f1a/ffffff?text=No+Image');
   const poster = tmdb?.poster_path
     ? `https://image.tmdb.org/t/p/w500${tmdb.poster_path}`
-    : movie.poster_url;
+    : posterFallbacks[0];
+  const handlePosterError = (event) => {
+    const current = new URL(event.currentTarget.getAttribute('src'), window.location.href).href;
+    const index = posterFallbacks.findIndex(candidate => new URL(candidate, window.location.href).href === current);
+    const next = posterFallbacks[index + 1];
+    if (next) event.currentTarget.src = next;
+    else event.currentTarget.onerror = null;
+  };
 
   const trailer = tmdb?.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')
     || tmdb?.videos?.results?.[0];
@@ -245,7 +271,7 @@ export default function MovieDetailPage() {
             <div className="md-info-section">
               <div className="md-info-compact">
                 <div className="md-info-poster">
-                  <img src={poster} alt={movie.name} />
+                  <img src={poster} alt={movie.name} onError={handlePosterError} />
                 </div>
                 <div className="md-info-text">
                   <h1 className="md-movie-title">{movie.name}</h1>
@@ -328,52 +354,31 @@ export default function MovieDetailPage() {
             {episodes.length > 0 && (
               <div className="md-episodes-section">
 
-                {/* Multiple servers → "Các bản chiếu" card grid */}
+                {/* Chọn bản chiếu */}
                 {episodes.length > 1 && (
-                  <div className="md-versions-wrap">
-                    <h3 className="md-section-title">Các bản chiếu</h3>
-                    <div className="md-versions-grid">
+                  <div className="md-version-picker">
+                    <div className="md-version-picker__heading">
+                      <h3 className="md-section-title">Chọn bản phim</h3>
+                      <p>Chọn Vietsub, thuyết minh hoặc lồng tiếng nếu có.</p>
+                    </div>
+                    <div className="md-server-strip" role="group" aria-label="Chọn bản phim">
                       {episodes.map((server, idx) => (
                         <button
                           key={idx}
-                          className={`md-version-card ${activeServer === idx ? 'md-version-card--active' : ''}`}
-                          onClick={() => {
-                            setActiveServer(idx);
-                            // Auto-select first episode of this server
-                            if (server.server_data?.length > 0) {
-                              handlePlayEp(server.server_data[0]);
-                            }
-                          }}
+                          type="button"
+                          className={`md-server-pill ${activeServer === idx ? 'active' : ''}`}
+                          aria-pressed={activeServer === idx}
+                          onClick={() => handleSelectServer(idx)}
                         >
-                          <div className="md-version-thumb">
-                            <img src={poster} alt={movie.name} />
-                            <div className="md-version-overlay">
-                              <FiPlay className="md-version-play" />
-                            </div>
-                            <span className="md-version-server-badge">{server.server_name}</span>
-                          </div>
-                          <div className="md-version-info">
-                            <p className="md-version-title">{movie.name}</p>
-                            <button className="md-version-cta">Xem bản này</button>
-                          </div>
+                          <span className="md-server-pill__top">
+                            <strong>{getVersionLabel(server.server_name, idx)}</strong>
+                            {activeServer === idx && <FiCheck aria-hidden="true" />}
+                          </span>
+                          <span className="md-server-pill__name">{server.server_name || `Server ${idx + 1}`}</span>
+                          <span className="md-server-pill__count">{server.server_data?.length || 0} tập</span>
                         </button>
                       ))}
                     </div>
-                  </div>
-                )}
-
-                {/* Server tab strip (only show if multiple servers) */}
-                {episodes.length > 1 && (
-                  <div className="md-server-strip">
-                    {episodes.map((server, idx) => (
-                      <button
-                        key={idx}
-                        className={`md-server-pill ${activeServer === idx ? 'active' : ''}`}
-                        onClick={() => setActiveServer(idx)}
-                      >
-                        {server.server_name}
-                      </button>
-                    ))}
                   </div>
                 )}
 
