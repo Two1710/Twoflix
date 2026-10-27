@@ -1,3 +1,5 @@
+import { parseJsonResponse } from '../utils/parseJsonResponse';
+
 const TMDB_API_KEY = '051675f9cf39c424859f3e0aa5fcfd85';
 const BASE_URL = 'https://api.themoviedb.org/3';
 
@@ -15,7 +17,7 @@ async function fetchWithCache(url) {
   }
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
+  const data = await parseJsonResponse(res, 'TMDB');
   apiCache.set(url, { timestamp: now, data });
   return JSON.parse(JSON.stringify(data));
 }

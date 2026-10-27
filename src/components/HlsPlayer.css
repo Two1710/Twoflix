@@ -28,6 +28,7 @@
   width: 100%; height: 100%;
   display: block; border: none;
 }
+.hls-source-error { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; color: rgba(255,255,255,.82); background: #08080d; text-align: center; font-size: .9rem; line-height: 1.6; }
 
 /* ── Loader ─────────────────────────────────────────────────── */
 .hls-loader {
@@ -254,8 +255,14 @@
 @media (max-width: 640px) {
   .hls-title-display { display: none; }
   .hls-skip-btn { display: none; }
-  .hls-time { font-size: 11px; padding: 0 4px; }
-  .hls-btn { width: 30px; height: 30px; font-size: 15px; }
-  .hls-play-btn { width: 30px; height: 30px; }
+  .hls-ctrl-overlay { padding: 34px 9px 8px; }
+  .hls-progress { height: 27px; margin-bottom: 2px; touch-action: pan-x; }
+  .hls-progress-track { height: 4px; }
+  .hls-seek { touch-action: pan-x; }
+  .hls-bar { min-height: 44px; gap: 4px; padding: 0; }
+  .hls-bar-left, .hls-bar-right { gap: 3px; }
+  .hls-time { min-width: 0; padding: 0 3px; font-size: 10px; }
+  .hls-btn { width: 40px; height: 40px; font-size: 17px; }
+  .hls-play-btn { width: 40px; height: 40px; }
   .hls-settings-menu { right: -8px; }
 }

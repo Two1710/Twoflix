@@ -1,3 +1,5 @@
+import { parseJsonResponse } from '../utils/parseJsonResponse';
+
 /**
  * KKPhim (phimapi.com) API Service
  * Provides real HLS video streams and movie data
@@ -19,7 +21,7 @@ async function ophimFetch(url) {
   }
   const res = await fetch(url);
   if (!res.ok) throw new Error(`PhimAPI HTTP ${res.status}`);
-  const data = await res.json();
+  const data = await parseJsonResponse(res, 'Nguồn dữ liệu phim');
   ophimCache.set(url, { data, ts: now });
   return JSON.parse(JSON.stringify(data));
 }

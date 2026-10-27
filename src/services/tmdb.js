@@ -1,3 +1,5 @@
+import { parseJsonResponse } from '../utils/parseJsonResponse';
+
 const TMDB_API_KEY = '051675f9cf39c424859f3e0aa5fcfd85'; // Standard free public key often used by movie clones
 const BASE_URL = 'https://api.themoviedb.org/3';
 
@@ -9,7 +11,7 @@ export async function getTMDBMovieCredits(tmdbId) {
   try {
     const res = await fetch(`${BASE_URL}/movie/${tmdbId}/credits?api_key=${TMDB_API_KEY}&language=vi-VN`);
     if (!res.ok) return null;
-    return await res.json();
+    return await parseJsonResponse(res, 'TMDB');
   } catch (err) {
     console.error('TMDB Fetch Error (Credits):', err);
     return null;
@@ -27,15 +29,15 @@ export async function getTMDBMovieDetails(tmdbId) {
       // Fallback to en-US if vi-VN has no data (often true for videos)
       const fallback = await fetch(`${BASE_URL}/movie/${tmdbId}?api_key=${TMDB_API_KEY}&append_to_response=videos&language=en-US`);
       if (!fallback.ok) return null;
-      return await fallback.json();
+      return await parseJsonResponse(fallback, 'TMDB');
     }
-    const data = await res.json();
+    const data = await parseJsonResponse(res, 'TMDB');
     
     // Check if we got videos in vietnamese, if not, fetch english videos separately
     if (!data.videos?.results?.length) {
       const vidRes = await fetch(`${BASE_URL}/movie/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=en-US`);
       if (vidRes.ok) {
-        const vidData = await vidRes.json();
+        const vidData = await parseJsonResponse(vidRes, 'TMDB');
         data.videos = vidData;
       }
     }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { parseJsonResponse } from '../utils/parseJsonResponse';
 import { Link } from 'react-router-dom';
 import { fetchOphimList } from '../services/ophim';
 import HeroCarousel from '../components/HeroCarousel';
@@ -59,7 +60,7 @@ export default function HomePage() {
         const [results, hotData] = await Promise.all([
           Promise.allSettled(SECTIONS.map(s => fetchOphimList(s.type, 1))),
           fetch('/api/hot-movies', { cache: 'no-store' })
-            .then(response => response.ok ? response.json() : { movies: [] })
+            .then(response => response.ok ? parseJsonResponse(response, 'Danh sách phim') : { movies: [] })
             .catch(() => ({ movies: [] })),
         ]);
 

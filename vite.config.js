@@ -5,6 +5,7 @@ import adminAuthHandler from "./server/admin-auth-handler.js";
 import announcementHandler from "./server/announcement-handler.js";
 import siteThemeHandler from "./server/site-theme-handler.js";
 import hotMoviesHandler from "./server/hot-movies-handler.js";
+import watchRoomHandler from "./server/watch-room-handler.js";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -21,6 +22,7 @@ export default defineConfig(({ mode }) => {
           server.middlewares.use("/api/announcement", (req, res) => announcementHandler(req, res));
           server.middlewares.use("/api/site-theme", (req, res) => siteThemeHandler(req, res));
           server.middlewares.use("/api/hot-movies", (req, res) => hotMoviesHandler(req, res));
+          server.middlewares.use("/api/watch-room", (req, res) => watchRoomHandler(req, res));
         },
       },
     ],

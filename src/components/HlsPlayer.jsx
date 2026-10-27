@@ -15,7 +15,7 @@ import './HlsPlayer.css';
 
 const HLS_TIMEOUT = 8000;
 
-export default function HlsPlayer({ src, embedSrc, title, poster }) {
+export default function HlsPlayer({ src, embedSrc, title, poster, roomState, onRoomStateChange, onPlayerModeChange }) {
   const videoRef    = useRef(null);
   const containerRef= useRef(null);
   const hlsRef      = useRef(null);
@@ -25,6 +25,15 @@ export default function HlsPlayer({ src, embedSrc, title, poster }) {
   const stallTimer  = useRef(null);
   const playbackStartedRef = useRef(false);
   const recoverRef = useRef({ network: 0, media: 0 });
+  const roomControlled = Boolean(roomState);
+  const roomStateRef = useRef(roomState);
+  const roomStateCallbackRef = useRef(onRoomStateChange);
+  const playerModeCallbackRef = useRef(onPlayerModeChange);
+  const roomRemoteUntilRef = useRef(0);
+  const roomLastPublishRef = useRef(0);
+  roomStateRef.current = roomState;
+  roomStateCallbackRef.current = onRoomStateChange;
+  playerModeCallbackRef.current = onPlayerModeChange;
 
   const [mode, setMode]                 = useState('loading'); // 'hls'|'iframe'|'loading'
   const [playing, setPlaying]           = useState(false);
@@ -36,6 +45,7 @@ export default function HlsPlayer({ src, embedSrc, title, poster }) {
   const [fullscreen, setFullscreen]     = useState(false);
   const [showCtrl, setShowCtrl]         = useState(true);
   const [loading, setLoading]           = useState(true);
+  const [sourceError, setSourceError]   = useState('');
   const [showUnmute, setShowUnmute]     = useState(true);
   const [flashIcon, setFlashIcon]       = useState(null);
 
@@ -53,6 +63,7 @@ export default function HlsPlayer({ src, embedSrc, title, poster }) {
   useEffect(() => {
     setMode('loading'); setLoading(true); setPlaying(false);
     setCurTime(0); setDuration(0); setShowUnmute(true);
+    setSourceError('');
     setQualities([]); setActiveQuality(-1); setSettingsOpen(false);
 
     if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
@@ -66,16 +77,21 @@ export default function HlsPlayer({ src, embedSrc, title, poster }) {
     if (!hasSrc && !hasEmbed) { setMode('iframe'); setLoading(false); return; }
     if (hasSrc) initHls(src, hasEmbed ? embedSrc : null);
     else { setMode('iframe'); setLoading(false); }
-  }, [src, embedSrc]);
+  }, [src, embedSrc, roomControlled]);
 
   function initHls(hlsSrc, fallback) {
     const video = videoRef.current;
     if (!video) { if (fallback) { setMode('iframe'); setLoading(false); } return; }
     const fallbackToIframe = () => {
-      if (!fallback) return;
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
+      }
+      if (!fallback) {
+        setSourceError('Nguồn phim này không hỗ trợ phát HLS trên thiết bị hiện tại.');
+        setMode('error');
+        setLoading(false);
+        return;
       }
       setMode('iframe');
       setLoading(false);
@@ -84,12 +100,15 @@ export default function HlsPlayer({ src, embedSrc, title, poster }) {
     // Safari
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = hlsSrc; video.muted = true; video.load();
-      video.play().catch(() => {});
+      if (!roomControlled) video.play().catch(() => {});
       setMode('hls'); setLoading(false);
       return;
     }
     if (!Hls.isSupported()) {
-      if (fallback) { setMode('iframe'); setLoading(false); } return;
+      if (fallback) setMode('iframe');
+      else { setMode('error'); setSourceError('Thiết bị này không hỗ trợ phát HLS.'); }
+      setLoading(false);
+      return;
     }
 
     const hls = new Hls({ enableWorker: false, maxBufferLength: 30, startLevel: -1, debug: false });
@@ -114,15 +133,19 @@ export default function HlsPlayer({ src, embedSrc, title, poster }) {
       });
       if (lvls.length > 1) setQualities(lvls);
       video.muted = true;
-      video.play()
-        .then(() => setPlaying(true))
-        .catch(() => setPlaying(false));
+      if (!roomControlled) {
+        video.play()
+          .then(() => setPlaying(true))
+          .catch(() => setPlaying(false));
+      }
 
       // Some desktop streams can parse manifest but never start playback.
       clearTimeout(stallTimer.current);
-      stallTimer.current = setTimeout(() => {
-        if (!playbackStartedRef.current) fallbackToIframe();
-      }, 6000);
+      if (!roomControlled) {
+        stallTimer.current = setTimeout(() => {
+          if (!playbackStartedRef.current) fallbackToIframe();
+        }, 6000);
+      }
     });
 
     hls.on(Hls.Events.LEVEL_SWITCHED, (_e, data) => setActiveQuality(data.level));
@@ -153,8 +176,15 @@ export default function HlsPlayer({ src, embedSrc, title, poster }) {
   useEffect(() => {
     if (mode !== 'hls') return;
     const v = videoRef.current; if (!v) return;
+    const publish = (force = false) => {
+      if (!roomControlled || Date.now() < roomRemoteUntilRef.current) return;
+      const now = Date.now();
+      if (!force && now - roomLastPublishRef.current < 2200) return;
+      roomLastPublishRef.current = now;
+      roomStateCallbackRef.current?.({ playing: !v.paused, currentTime: v.currentTime || 0 });
+    };
     const H = {
-      timeupdate:     () => setCurTime(v.currentTime),
+      timeupdate:     () => { setCurTime(v.currentTime); publish(); },
       durationchange: () => { if (isFinite(v.duration)) setDuration(v.duration); },
       waiting:        () => setLoading(true),
       canplay:        () => setLoading(false),
@@ -163,13 +193,40 @@ export default function HlsPlayer({ src, embedSrc, title, poster }) {
         clearTimeout(stallTimer.current);
         setLoading(false);
         setPlaying(true);
+        publish(true);
       },
-      pause:          () => setPlaying(false),
+      pause:          () => { setPlaying(false); publish(true); },
+      seeked:         () => publish(true),
+      error:           () => {
+        if (embedSrc) { setMode('iframe'); setLoading(false); }
+        else {
+          setSourceError('Không phát được nguồn phim trên thiết bị này.');
+          setMode('error');
+          setLoading(false);
+        }
+      },
       volumechange:   () => { setMuted(v.muted); if (!v.muted) setVolume(v.volume); },
       progress:       () => { if (v.buffered.length) setBuffered(v.buffered.end(v.buffered.length - 1)); },
     };
     Object.entries(H).forEach(([e,fn]) => v.addEventListener(e,fn));
     return () => Object.entries(H).forEach(([e,fn]) => v.removeEventListener(e,fn));
+  }, [mode, roomControlled, embedSrc]);
+
+  useEffect(() => {
+    const state = roomStateRef.current;
+    const v = videoRef.current;
+    if (!roomControlled || mode !== 'hls' || !state || !v) return;
+
+    const elapsed = state.playing ? Math.max(0, Date.now() - state.updatedAt) / 1000 : 0;
+    const target = Math.max(0, state.currentTime + elapsed);
+    roomRemoteUntilRef.current = Date.now() + 1400;
+    if (Number.isFinite(v.duration) && Math.abs(v.currentTime - target) > 1.5) v.currentTime = target;
+    if (state.playing && v.paused) v.play().catch(() => {});
+    else if (!state.playing && !v.paused) v.pause();
+  }, [mode, roomControlled, roomState?.updatedAt, duration]);
+
+  useEffect(() => {
+    playerModeCallbackRef.current?.(mode);
   }, [mode]);
 
   useEffect(() => () => {
@@ -225,11 +282,22 @@ export default function HlsPlayer({ src, embedSrc, title, poster }) {
   const togglePlay = useCallback(() => {
     const v = videoRef.current; if (!v) return;
     clearTimeout(flashTimer.current);
-    if (v.paused) { v.play(); setFlashIcon('play'); }
+    if (v.paused) {
+      v.play().then(() => setPlaying(true)).catch(() => {
+        if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+        if (embedSrc) setMode('iframe');
+        else {
+          setSourceError('Trình duyệt không thể phát nguồn phim này.');
+          setMode('error');
+        }
+        setLoading(false);
+      });
+      setFlashIcon('play');
+    }
     else          { v.pause(); setFlashIcon('pause'); }
     flashTimer.current = setTimeout(() => setFlashIcon(null), 700);
     showControls();
-  }, [showControls]);
+  }, [showControls, embedSrc]);
 
   const skip = (sec) => {
     const v = videoRef.current;
@@ -321,6 +389,8 @@ export default function HlsPlayer({ src, embedSrc, title, poster }) {
       {(mode === 'loading' || (mode === 'hls' && loading)) && (
         <div className="hls-loader"><FiLoader className="hls-spin"/></div>
       )}
+
+      {mode === 'error' && <div className="hls-source-error">{sourceError}</div>}
 
       {/* Flash icon */}
       {flashIcon && mode === 'hls' && (

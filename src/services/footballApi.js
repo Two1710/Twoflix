@@ -1,3 +1,5 @@
+import { parseJsonResponse } from '../utils/parseJsonResponse';
+
 const SPORTSDB_BASE = 'https://www.thesportsdb.com/api/v1/json/123';
 const SCOREBAT_BASE = 'https://www.scorebat.com/video-api/v3';
 
@@ -45,7 +47,7 @@ function formatDate(date) {
 export async function fetchMatchesByDate(date) {
   const d = date ? formatDate(date) : formatDate(new Date());
   const res = await fetch(`${SPORTSDB_BASE}/eventsday.php?d=${d}&s=Soccer`);
-  const data = await res.json();
+  const data = await parseJsonResponse(res, 'Dữ liệu bóng đá');
   return data.events || [];
 }
 
@@ -59,7 +61,7 @@ export async function fetchMatchesRange(centerDate, daysBefore = 1, daysAfter = 
     dates.push(formatDate(d));
   }
   const results = await Promise.all(
-    dates.map(d => fetch(`${SPORTSDB_BASE}/eventsday.php?d=${d}&s=Soccer`).then(r => r.json()).catch(() => ({})))
+    dates.map(d => fetch(`${SPORTSDB_BASE}/eventsday.php?d=${d}&s=Soccer`).then(r => parseJsonResponse(r, 'Dữ liệu bóng đá')).catch(() => ({})))
   );
   const allEvents = [];
   results.forEach((data, i) => {
@@ -73,37 +75,37 @@ export async function fetchMatchesRange(centerDate, daysBefore = 1, daysAfter = 
 
 export async function fetchLeagueNextEvents(leagueId) {
   const res = await fetch(`${SPORTSDB_BASE}/eventsnextleague.php?id=${leagueId}`);
-  const data = await res.json();
+  const data = await parseJsonResponse(res, 'Dữ liệu bóng đá');
   return data.events || [];
 }
 
 export async function fetchLeaguePastEvents(leagueId) {
   const res = await fetch(`${SPORTSDB_BASE}/eventspastleague.php?id=${leagueId}`);
-  const data = await res.json();
+  const data = await parseJsonResponse(res, 'Dữ liệu bóng đá');
   return data.events || [];
 }
 
 export async function fetchLeagueDetails(leagueId) {
   const res = await fetch(`${SPORTSDB_BASE}/lookupleague.php?id=${leagueId}`);
-  const data = await res.json();
+  const data = await parseJsonResponse(res, 'Dữ liệu bóng đá');
   return data.leagues?.[0] || null;
 }
 
 export async function fetchTeamDetails(teamId) {
   const res = await fetch(`${SPORTSDB_BASE}/lookupteam.php?id=${teamId}`);
-  const data = await res.json();
+  const data = await parseJsonResponse(res, 'Dữ liệu bóng đá');
   return data.teams?.[0] || null;
 }
 
 export async function fetchLeagueTable(leagueId, season = CURRENT_SEASON) {
   const res = await fetch(`${SPORTSDB_BASE}/lookuptable.php?l=${leagueId}&s=${season}`);
-  const data = await res.json();
+  const data = await parseJsonResponse(res, 'Dữ liệu bóng đá');
   return data.table || [];
 }
 
 export async function fetchSeasonEvents(leagueId, season = CURRENT_SEASON) {
   const res = await fetch(`${SPORTSDB_BASE}/eventsseason.php?id=${leagueId}&s=${season}`);
-  const data = await res.json();
+  const data = await parseJsonResponse(res, 'Dữ liệu bóng đá');
   return data.events || [];
 }
 
@@ -112,7 +114,7 @@ export async function fetchSeasonEvents(leagueId, season = CURRENT_SEASON) {
 export async function fetchHighlights() {
   try {
     const res = await fetch(SCOREBAT_BASE);
-    const data = await res.json();
+    const data = await parseJsonResponse(res, 'Video highlights');
     const arr = Array.isArray(data) ? data : data.response || [];
     // Normalize competition field
     return arr.map(h => ({

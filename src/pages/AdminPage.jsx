@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FiArrowDown, FiArrowUp, FiBell, FiLock, FiLogOut, FiPlus, FiSearch, FiSend, FiTrash2, FiCheck, FiEye } from 'react-icons/fi';
+import { FiArrowDown, FiArrowUp, FiBell, FiLock, FiLogOut, FiPlus, FiSearch, FiSend, FiTrash2, FiCheck, FiEye, FiUsers } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
 import { searchOphim } from '../services/ophim';
+import { parseJsonResponse } from '../utils/parseJsonResponse';
 import './AdminPage.css';
 
 const EVENT_THEMES = [
@@ -34,7 +36,7 @@ export default function AdminPage() {
 
   const loadAnnouncement = useCallback(async () => {
     const response = await fetch('/api/announcement', { credentials: 'same-origin' });
-    const data = await response.json();
+    const data = await parseJsonResponse(response, 'Máy chủ quản trị');
     if (!response.ok) throw new Error(data.error || 'Không thể tải thông báo.');
     setAnnouncement(data.announcement);
     setMessage(data.announcement?.message || '');
@@ -42,7 +44,7 @@ export default function AdminPage() {
 
   const loadHotMovies = useCallback(async () => {
     const response = await fetch('/api/hot-movies', { credentials: 'same-origin' });
-    const data = await response.json();
+    const data = await parseJsonResponse(response, 'Máy chủ quản trị');
     if (!response.ok) throw new Error(data.error || 'Không thể tải danh sách phim hot.');
     setHotMovies(data.movies || []);
     setHotDirty(false);
@@ -50,14 +52,14 @@ export default function AdminPage() {
 
   const loadTheme = useCallback(async () => {
     const response = await fetch('/api/site-theme', { credentials: 'same-origin', cache: 'no-store' });
-    const data = await response.json();
+    const data = await parseJsonResponse(response, 'Máy chủ quản trị');
     if (!response.ok) throw new Error(data.error || 'Không thể tải giao diện.');
     setTheme(data.theme || 'default');
   }, []);
 
   useEffect(() => {
     fetch('/api/admin-auth', { credentials: 'same-origin' })
-      .then(response => response.json())
+      .then(response => parseJsonResponse(response, 'Máy chủ quản trị'))
       .then(async auth => {
         setAuthenticated(auth.authenticated === true);
         if (auth.authenticated) await Promise.all([loadAnnouncement(), loadHotMovies(), loadTheme()]);
@@ -77,7 +79,7 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
-      const data = await response.json();
+      const data = await parseJsonResponse(response, 'Máy chủ quản trị');
       if (!response.ok) throw new Error(data.error || 'Đăng nhập thất bại.');
       setAuthenticated(true);
       setPassword('');
@@ -105,7 +107,7 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message }),
       });
-      const data = await response.json();
+      const data = await parseJsonResponse(response, 'Máy chủ quản trị');
       if (!response.ok) throw new Error(data.error || 'Không thể đăng thông báo.');
       setAnnouncement(data.announcement);
     } catch (cause) {
@@ -124,7 +126,7 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ theme }),
       });
-      const data = await response.json();
+      const data = await parseJsonResponse(response, 'Máy chủ quản trị');
       if (!response.ok) throw new Error(data.error || 'Không thể cập nhật giao diện.');
       setTheme(data.theme);
       document.documentElement.dataset.theme = data.theme;
@@ -140,7 +142,7 @@ export default function AdminPage() {
     setSaving(true);
     try {
       const response = await fetch('/api/announcement', { method: 'DELETE', credentials: 'same-origin' });
-      const data = await response.json();
+      const data = await parseJsonResponse(response, 'Máy chủ quản trị');
       if (!response.ok) throw new Error(data.error || 'Không thể gỡ thông báo.');
       setAnnouncement(null);
       setMessage('');
@@ -204,7 +206,7 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ movies: hotMovies }),
       });
-      const data = await response.json();
+      const data = await parseJsonResponse(response, 'Máy chủ quản trị');
       if (!response.ok) throw new Error(data.error || 'Không thể lưu danh sách phim hot.');
       setHotMovies(data.movies || []);
       setHotDirty(false);
@@ -258,6 +260,14 @@ export default function AdminPage() {
             </button>)}
           </div>
           <div className="admin-theme-footer"><span>Đang chọn: <strong>{EVENT_THEMES.find(event => event.id === theme)?.name || 'Bình thường'}</strong></span><button className="admin-submit admin-submit--inline" onClick={saveTheme} disabled={themeSaving}><FiCheck /> {themeSaving ? 'Đang lưu…' : 'Áp dụng toàn website'}</button></div>
+        </section>
+        <section className="admin-room-section">
+          <div className="admin-room-icon"><FiUsers /></div>
+          <div className="admin-room-copy">
+            <h2>Phòng xem chung</h2>
+            <p>Chọn phim và tập có nguồn HLS trên website, sau đó nhấn “Tạo phòng xem chung”. Chia sẻ link để mọi người vào cùng phòng.</p>
+          </div>
+          <Link to="/" className="admin-room-link">Chọn phim</Link>
         </section>
         <section className="admin-hot-movies">
           <div className="admin-hot-heading">

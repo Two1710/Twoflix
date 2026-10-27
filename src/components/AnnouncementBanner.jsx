@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { FiBell, FiX } from 'react-icons/fi';
 import { useLocation } from 'react-router-dom';
+import { parseJsonResponse } from '../utils/parseJsonResponse';
 import './AnnouncementBanner.css';
 
 export default function AnnouncementBanner() {
@@ -12,7 +13,7 @@ export default function AnnouncementBanner() {
   useEffect(() => {
     let active = true;
     const load = () => fetch('/api/announcement', { cache: 'no-store' })
-      .then(response => response.ok ? response.json() : null)
+      .then(response => response.ok ? parseJsonResponse(response, 'Thông báo website') : null)
       .then(data => {
         if (!active || !data) return;
         const nextUpdatedAt = data.announcement?.updatedAt || null;

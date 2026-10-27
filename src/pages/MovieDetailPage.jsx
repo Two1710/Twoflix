@@ -5,10 +5,11 @@ import { getImageUrl } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import MovieCard from '../components/MovieCard';
 import HlsPlayer from '../components/HlsPlayer';
+import { parseJsonResponse } from '../utils/parseJsonResponse';
 import {
   FiPlay, FiHeart, FiStar, FiChevronLeft, FiList,
   FiFlag, FiUser, FiVideo, FiX, FiShare2, FiDownload,
-  FiChevronDown, FiChevronUp, FiExternalLink
+  FiChevronDown, FiChevronUp, FiExternalLink, FiUsers
 } from 'react-icons/fi';
 import './MovieDetailPage.css';
 
@@ -31,6 +32,45 @@ export default function MovieDetailPage() {
   const [showTrailer, setShowTrailer] = useState(false);
   const [showAllEps, setShowAllEps] = useState(false);
   const [showDesc, setShowDesc] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [creatingRoom, setCreatingRoom] = useState(false);
+  const [roomError, setRoomError] = useState('');
+
+  useEffect(() => {
+    fetch('/api/admin-auth', { credentials: 'same-origin' })
+      .then(response => response.ok ? parseJsonResponse(response, 'Xác thực quản trị') : null)
+      .then(data => setIsAdmin(data?.authenticated === true))
+      .catch(() => setIsAdmin(false));
+  }, []);
+
+  async function createWatchRoom() {
+    if (!isAdmin || !movie || !activeEp?.link_m3u8 || creatingRoom) return;
+    setCreatingRoom(true);
+    setRoomError('');
+    try {
+      const response = await fetch('/api/watch-room', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create',
+          movieSlug: movie.slug,
+          title: movie.name,
+          episode: activeEp.name || 'Full',
+          sourceUrl: activeEp.link_m3u8,
+          fallbackUrl: activeEp.link_embed,
+          poster: movie.poster_url || movie.thumb_url,
+        }),
+      });
+      const data = await parseJsonResponse(response, 'Máy chủ phòng xem');
+      if (!response.ok) throw new Error(data.error || 'Không thể tạo phòng xem chung.');
+      navigate(`/xem-chung/${data.room.code}`);
+    } catch (error) {
+      setRoomError(error.message || 'Không thể tạo phòng xem chung.');
+    } finally {
+      setCreatingRoom(false);
+    }
+  }
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -67,13 +107,13 @@ export default function MovieDetailPage() {
         if (m.tmdb_id) {
           const tmdbType = m.tmdb_type === 'tv' ? 'tv' : 'movie';
           fetch(`${TMDB_BASE}/${tmdbType}/${m.tmdb_id}?api_key=${TMDB_KEY}&append_to_response=videos,credits,images&language=vi-VN`)
-            .then(r => r.ok ? r.json() : null)
+            .then(r => r.ok ? parseJsonResponse(r, 'Dữ liệu phim') : null)
             .then(data => {
               if (data) {
                 // If we got no videos from vi-VN, fetch en-US videos
                 if (!data.videos?.results?.length) {
                   return fetch(`${TMDB_BASE}/${tmdbType}/${m.tmdb_id}/videos?api_key=${TMDB_KEY}&language=en-US`)
-                    .then(r => r.json())
+                    .then(r => parseJsonResponse(r, 'Dữ liệu trailer'))
                     .then(vids => { data.videos = vids; return data; });
                 }
                 return data;
@@ -194,6 +234,12 @@ export default function MovieDetailPage() {
         <div className="md-action-bar">
           <div className="md-action-inner">
             <div className="md-action-left">
+              {isAdmin && activeEp?.link_m3u8 && (
+                <button className="md-action-item md-watch-room-create" onClick={createWatchRoom} disabled={creatingRoom}>
+                  <FiUsers />
+                  <span>{creatingRoom ? 'Đang tạo phòng…' : 'Tạo phòng xem chung'}</span>
+                </button>
+              )}
               <button
                 className={`md-action-item ${isBookmarked(movie.slug) ? 'bookmarked' : ''}`}
                 onClick={() => toggleBookmark(movie)}
@@ -229,6 +275,7 @@ export default function MovieDetailPage() {
                 <span>Báo lỗi</span>
               </button>
             </div>
+            {roomError && <div className="md-watch-room-error" role="alert">{roomError}</div>}
             {activeEp && (
               <div className="md-current-ep">
                 Đang xem: {activeEp.name === 'Full' ? 'Full' : ` ${activeEp.name}`}
