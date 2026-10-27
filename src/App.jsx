@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { FiChevronUp } from 'react-icons/fi';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -46,6 +46,25 @@ export default function App() {
       <SiteTheme />
       <SeasonalEffects />
       <AnnouncementBanner />
+      <AnimatedRoutes />
+      <Footer />
+      <ScrollToTop />
+    </BrowserRouter>
+  );
+}
+
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  return (
+    <div className="route-transition" key={location.pathname}>
+      <div className="page-loader" aria-hidden="true">
+        <div className="page-loader__content">
+          <img src="/logo.png" alt="" className="page-loader__logo" />
+          <span className="page-loader__label">ĐANG MỞ TRẢI NGHIỆM</span>
+          <span className="page-loader__track"><span /></span>
+        </div>
+      </div>
       <Routes>
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/" element={<HomePage />} />
@@ -60,8 +79,6 @@ export default function App() {
         <Route path="/bong-da/giai-dau/:leagueId" element={<FootballLeaguePage />} />
         <Route path="/bong-da/highlights" element={<FootballHighlightsPage />} />
       </Routes>
-      <Footer />
-      <ScrollToTop />
-    </BrowserRouter>
+    </div>
   );
 }
