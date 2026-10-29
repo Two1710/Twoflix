@@ -6,6 +6,7 @@ import HeroCarousel from '../components/HeroCarousel';
 import MovieCarousel from '../components/MovieCarousel';
 import CategoryInterest from '../components/CategoryInterest';
 import MovieCard from '../components/MovieCard';
+import NativeBanner from '../components/NativeBanner';
 import { useAuth } from '../contexts/AuthContext';
 import './HomePage.css';
 import { FiChevronRight, FiShuffle } from 'react-icons/fi';
@@ -117,6 +118,8 @@ export default function HomePage() {
 
           {/* Category Interest chips */}
           <CategoryInterest />
+
+          <NativeBanner />
 
           <section className="home-discovery">
             <div className="home-discovery__intro">
